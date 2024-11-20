@@ -1,0 +1,48 @@
+[
+    {
+        "title": "Remera blanca",
+        "description": "Algodon 100%",
+        "price": 10,
+        "code": "R01",
+        "stock": 100,
+        "category": "Remeras",
+        "thumbnails": "remerablanca.jpg",
+        "status": true
+    },    {
+        "title": "Remera Negra",
+        "description": "Algodon 100%",
+        "price": 12,
+        "code": "R02",
+        "stock": 100,
+        "category": "Remeras",
+        "thumbnails": "remeranegra.jpg",
+        "status": true
+    },    {
+        "title": "Jogging Negro",
+        "description": "Algodon 100%",
+        "price": 15,
+        "code": "J01",
+        "stock": 50,
+        "category": "Pantalones",
+        "thumbnails": "joggingnegro.jpg",
+        "status": true
+    },    {
+        "title": "Buzo Azul",
+        "description": "Algodon 100% con capucha",
+        "price": 12,
+        "code": "B01",
+        "stock": 20,
+        "category": "Buzos",
+        "thumbnails": "buzoazul.jpg",
+        "status": true
+    },    {
+        "title": "Jogging azul",
+        "description": "Algodon 100%, jogging con bolsillos",
+        "price": 16,
+        "code": "J02",
+        "stock": 20,
+        "category": "Pantalones",
+        "thumbnails": "joggingazul.jpg",
+        "status": true
+    }
+]

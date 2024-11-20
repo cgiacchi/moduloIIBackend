@@ -1,0 +1,69 @@
+<div class="realtime-products">
+    <section class="product-form-section">
+        <h2>Crear Nuevo Producto</h2>
+        <form id="productForm">
+            <div class="form-row">
+                <label for="code">Código</label>
+                <input type="text" id="code" name="code" required>
+            </div>
+            <div class="form-row">
+                <label for="title">Nombre</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div class="form-row">
+                <label for="priceList">Precio</label>
+                <input type="number" id="priceList" name="priceList" min="0" step="0.01" required>
+            </div>
+            <div class="form-row">
+                <label for="stock">Stock</label>
+                <input type="number" id="stock" name="stock" min="0" required>
+            </div>
+            <div class="form-row">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+            <div class="form-row">
+                <label for="category">Categoría</label>
+                <select id="category" name="category" required>
+                    <option value="">Selecciona una</option>
+                    <option value="Remeras">Remeras</option>
+                    <option value="Pantalones">Pantalones</option>
+                    <option value="Buzos">Buzos</option>
+                </select>
+            </div>
+            <button type="submit">Agregar Producto</button>
+        </form>
+    </section>
+
+    <section class="product-list-section">
+        <h2>Productos Actuales</h2>
+        <ul class="products-list">
+            {{#each products.docs}}
+                <li>
+                    <div class="product-info">
+                        <p><strong>{{this.title}}</strong> ({{this.category.name}})</p>
+                        <p>{{this.description}}</p>
+                        <p>Precio: ${{this.priceList}}</p>
+                        <p>Stock: {{this.stock}}</p>
+                    </div>
+                    <button onclick="addToCart('{{this.code}}')" class="add-to-cart">Añadir</button>
+                </li>
+            {{/each}}
+        </ul>
+    </section>
+</div>
+
+<script>
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const productData = Object.fromEntries(new FormData(e.target).entries());
+        socketClient.emit('addProduct', productData);
+        
+        await Swal.fire("Producto agregado", "El producto fue añadido con éxito.", "success");
+        e.target.reset();
+    });
+
+    socketClient.on('productAdded', (product) => {
+        Swal.fire(`Nuevo producto: ${product.title}`, "Producto añadido en tiempo real", "info");
+    });
+</script>

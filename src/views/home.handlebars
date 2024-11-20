@@ -1,0 +1,47 @@
+<div class="product-section">
+    <h1>Explora Nuestros Productos</h1>
+    <ul class="products-grid">
+        {{#each products.docs}}
+            <li class="product-card">
+                <div class="product-header">
+                    <h3>{{this.title}}</h3>
+                    <span class="product-category">{{this.category.name}}</span>
+                </div>
+                <p class="product-description">{{this.description}}</p>
+                <div class="product-footer">
+                    <p class="product-price">Precio: ${{this.priceList}}</p>
+                    <p class="product-stock">En stock: {{this.stock}}</p>
+                    <div class="quantity-controls">
+                        <button onclick="updateQuantity('{{this.code}}', 'decrease')">-</button>
+                        <input type="text" class="quantity-input" value="1" max="{{this.stock}}" readonly>
+                        <button onclick="updateQuantity('{{this.code}}', 'increase')">+</button>
+                    </div>
+                    <button onclick="addToCart('{{this.code}}')" class="add-to-cart-btn">Añadir al carrito</button>
+                </div>
+            </li>
+        {{/each}}
+    </ul>
+
+    <nav class="pagination">
+        {{#if products.hasPrevPage}}
+            <a href="?page={{products.prevPage}}&limit={{products.limit}}">Anterior</a>
+        {{/if}}
+        <span>Página {{products.page}} de {{products.totalPages}}</span>
+        {{#if products.hasNextPage}}
+            <a href="?page={{products.nextPage}}&limit={{products.limit}}">Siguiente</a>
+        {{/if}}
+    </nav>
+</div>
+
+<script>
+    const updateQuantity = (productId, action) => {
+        const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+        const quantity = Math.max(1, Math.min(parseInt(input.max), parseInt(input.value) + (action === 'increase' ? 1 : -1)));
+        input.value = quantity;
+    };
+
+    const addToCart = (productId) => {
+        const quantity = document.querySelector(`.quantity-input[data-product-id="${productId}"]`).value;
+        Swal.fire(`Producto ${productId} añadido al carrito con cantidad ${quantity}`);
+    };
+</script>
