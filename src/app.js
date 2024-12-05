@@ -1,21 +1,30 @@
 import express from 'express';
 import config from './config.js';
-import productsRouter from './routes/products.router.js';
-import viewsRouter from './routes/views.router.js';
-import cartsRouter from './routes/carts.router.js';
-import handlebars from 'express-handlebars'
 import mongoose from 'mongoose';
+import MongoStore from "connect-mongo"
+import cookieParser from 'cookie-parser'
 import { Server } from "socket.io";
-
+import morgan from "morgan"
+import session from "express-session"
+import pathHandler from "./middlewares/pathHandler.mid.js"
+import errorHandler from "./middlewares/errorHandler.mid.js"
+import indexRouter from "./routes/index.router.js"
+import dbConnect from "./utils/dbConnect.util.js"
+import viewsRouter from './routes/api/views.api.js';
+import handlebars from 'express-handlebars'
 
 
 const app = express();
 
 const httpServer = app.listen(config.PORT, async () => {
-    await mongoose.connect(config.MONGODB_URI);
+    console.log("server ready on port "+port);
+    dbConnect()
+    app.listen(port, ready)});
 
     const socketServer = new Server(httpServer);
     app.set('socketServer', socketServer);
+
+
 
     socketServer.on("connection", (socket) => {
     socket.on("update_ok", (data) => {
@@ -27,15 +36,28 @@ const httpServer = app.listen(config.PORT, async () => {
 
     app.use(express.json());
     app.use(express.urlencoded({ extended:true }));
+    app.use(cookieParser(process.env.SECRET_KEY))
+    app.use(express.static("public"))
+    
+    app.use(morgan("dev"))
+    app.use(session({
+        secret: process.env.SECRET_KEY, resave: true, saveUninitialized: true,
+        store: new MongoStore({ mongoUrl: process.env.MONGO_LINK, ttl: 60*60*24 })
+    }))
+
 
     app.engine('handlebars', handlebars.engine());
     app.set('views', `${config.DIRNAME}/views`);
     app.set('view engine', 'handlebars');
 
-    app.use('api/products', productsRouter);
-    app.use('api/carts', cartsRouter);
     app.use('/views', viewsRouter);
     app.use('/static', express.static(`${config.DIRNAME}/public`));     
+    app.use(indexRouter)
+    app.use(errorHandler)
+    app.use(pathHandler)
 
-    console.log(`Listening on port ${config.PORT} conected to bbdd`);
-});
+
+
+
+
+
