@@ -22,29 +22,37 @@ class Manager {
         }
     }
 
-    readByEmail = async (email) => {
+    async readByEmail(email) {
         try {
-            const one = await this.model.findOne({ email }).lean()
-            return one
+            const one = await this.model.findOne({ email }).lean();
+            if (!one) {
+                throw new Error('User not found');
+            }
+            return one;
         } catch (error) {
-            throw error
+            throw new Error(`Error fetching user by email: ${error.message}`);
         }
     }
-
-    readById = async (id) => {
+    async readById(id) {
         try {
-            const one = await this.model.findOne({ _id: id }).lean()
-            return one
+            const one = await this.model.findOne({ _id: id }).lean();
+            if (!one) {
+                throw new Error('Cart not found');
+            }
+            return one;
         } catch (error) {
-            throw error
+            throw new Error(`Error reading cart: ${error.message}`);
         }
     }
-    readAllPaginated = async(query, opts)=>{
+    async readAllPaginated(query, opts) {
         try {
-            const all = await this.model.paginate(query,opts)
+            const all = await this.model.paginate(query, opts);
+            if (!all) {
+                throw new Error('No products found with given query');
+            }
             return all;
         } catch (error) {
-            throw error;
+            throw new Error(`Error fetching paginated products: ${error.message}`);
         }
     }
     update = async (id, data) => {

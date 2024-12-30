@@ -33,27 +33,30 @@ passport.use("register", new LocalStrategy(
 
 passport.use("login", new LocalStrategy(
     { passReqToCallback: true, usernameField: "email" }, 
-    async(req, email, password, done)=>{
-        const user = await readByEmail(email);
-        if(!user){
-            const error = new Error('USER NOT FOUND');
-            error.statusCode= 401;
+    async (req, email, password, done) => {
+        try {
+            const user = await readByEmail(email);
+            if (!user) {
+                const error = new Error('USER NOT FOUND');
+                error.statusCode = 404;  
+                return done(error);
+            }
+            if (!user.verifiedUser) {
+                const error = new Error('USER MUST VERIFY MAIL FIRST');
+                error.statusCode = 401; 
+                return done(error);
+            }
+            const passwordsMatch = verifyHashUtil(password, user.password);
+            if (passwordsMatch) {
+                req.token = createTokenUtil({ user_id: user._id, role: user.role });
+                return done(null, user);
+            }
+            const error = new Error('INVALID CREDENTIALS');
+            error.statusCode = 401;
+            return done(error);
+        } catch (error) {
             return done(error);
         }
-        if(!user.verifiedUser){
-            const error = new Error('USER MUST VERIFY MAIL FIRST');
-            error.statusCode= 401;
-            return done(error);
-        }
-        const passwordsMatch = verifyHashUtil(password, user.password);
-        if(passwordsMatch){
-            req.token = createTokenUtil({user_id: user._id, role: user.role});
-            return done(null, user);
-        }
-        const error = new Error('INVALID CREDENTIALS');
-        error.statusCode= 401;
-        return done(error);
-
     }
 ));
 
