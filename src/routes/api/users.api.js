@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { userModel } from "../../data/mongo/models/user.model.js";
+import UserModel  from "../../data/mongo/models/user.model.js";
 
 const router = Router();
 
@@ -12,7 +12,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Endpoint para crear un nuevo usuario
 router.post('/', async (req, res) => {
     try {
         const { first_name, last_name, email, age, password, role } = req.body;

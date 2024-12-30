@@ -12,5 +12,6 @@ apiRouter.use("/cookies", cookiesApiRouter);
 apiRouter.use("/carts", cartsApiRouter);
 apiRouter.use("/users", usersApiRouter);
 apiRouter.use("/sessions", sessionsApiRouter);
+apiRouter.use("/home", homeApiRouter);
 
 export default apiRouter;

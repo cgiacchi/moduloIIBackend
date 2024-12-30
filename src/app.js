@@ -1,5 +1,9 @@
+import dotenv from 'dotenv';
+    dotenv.config();
+
 import express from 'express';
 import config from './config.js';
+import envUtil from "./src/utils/env.util.js"
 import mongoose from 'mongoose';
 import MongoStore from "connect-mongo"
 import cookieParser from 'cookie-parser'
@@ -10,16 +14,19 @@ import pathHandler from "./middlewares/pathHandler.mid.js"
 import errorHandler from "./middlewares/errorHandler.mid.js"
 import indexRouter from "./routes/index.router.js"
 import dbConnect from "./utils/dbConnect.util.js"
+import homeRouter from './routes/home.router.js';
 import viewsRouter from './routes/api/views.api.js';
 import handlebars from 'express-handlebars'
+import argsUtil from "./src/utils/args.util.js";
 
+const {PORT, MONGO_REMOTE_URI, COOKIES_SECRET, MONGO_LOCAL_URI} = envUtil;
 
 const app = express();
 
-const httpServer = app.listen(config.PORT, async () => {
-    console.log("server ready on port "+port);
+const httpServer = app.listen(process.env.PORT, async () => {
+    console.log("server ready on port "+ process.env.PORT);
     dbConnect()
-    app.listen(port, ready)});
+    app.listen(process.env.PORT, ready)});
 
     const socketServer = new Server(httpServer);
     app.set('socketServer', socketServer);
@@ -36,7 +43,7 @@ const httpServer = app.listen(config.PORT, async () => {
 
     app.use(express.json());
     app.use(express.urlencoded({ extended:true }));
-    app.use(cookieParser(process.env.SECRET_KEY))
+    app.use(cookieParser(process.env.SECRET_KEY,))
     app.use(express.static("public"))
     
     app.use(morgan("dev"))
@@ -51,13 +58,8 @@ const httpServer = app.listen(config.PORT, async () => {
     app.set('view engine', 'handlebars');
 
     app.use('/views', viewsRouter);
+    app.use('/', homeRouter);
     app.use('/static', express.static(`${config.DIRNAME}/public`));     
     app.use(indexRouter)
     app.use(errorHandler)
     app.use(pathHandler)
-
-
-
-
-
-

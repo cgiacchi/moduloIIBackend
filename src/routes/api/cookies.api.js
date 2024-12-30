@@ -5,8 +5,7 @@ const cookiesRouter = Router();
 cookiesRouter.post('/set', (req, res, next)=>{
     try {
         const message = 'COOKIE SET'
-        return res
-                .status(201)
+        return res.status(201)
                 .cookie("clave", "valor", {signed: true}) 
                 .cookie("cookieTemporal", "valorTemporal", {maxAge: 10000})
                 .json({message});

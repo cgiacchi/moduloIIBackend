@@ -1,141 +1,93 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
-import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
-import { create, readByEmail, readById, update, } from "../data/mongo/managers/user.manager.js";
+import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { createHashUtil, verifyHashUtil } from "../utils/hash.util.js";
-import { createTokenUtil, verifyTokenUtil } from "../utils/token.util.js";
-const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BASE_URL } = process.env;
+import { create, readByEmail } from "../data/mongo/managers/user.manager.js";
+import { createTokenUtil } from "../utils/token.util.js";
+import envUtil from "../utils/env.util.js";
+import { sendVerificationEmail } from "../utils/nodemailer.util.js";
+import crypto from 'crypto';
 
-passport.use("register", new LocalStrategy({ passReqToCallback: true, usernameField: "email", },
-      async (req, email, password, done) => {
-      try {
+const {GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, API_BASE_URL, SECRET_KEY} = envUtil;
+
+passport.use("register", new LocalStrategy(
+    { passReqToCallback: true, usernameField: "email" }, 
+    async(req, email, password, done)=>{
         const one = await readByEmail(email);
-        if (one) {
-          const info = { message: "user already exists", statusCode: 401 };
-          return done(null, false, info);
+        if(one){
+            const error = new Error('USER ALREADY REGISTERED');
+            error.statusCode = 401;
+            return done(error);
         }
-        const hashedPassword = createHashUtil(password);
-        const user = await create({
-          email,
-          password: hashedPassword,
-          name: req.body.name || "default name",
-        });
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
-);
+        req.body.password = createHashUtil(password);
+        let data = req.body;
+        const verificationCode = crypto.randomBytes(12).toString('hex');
+        data = {...data, verificationCode};
+        const newUser = await create(data);
+        await sendVerificationEmail(newUser.email, verificationCode);
+        return done(null, newUser);
 
-passport.use("login", new LocalStrategy({ passReqToCallback: true, usernameField: "email" },
-    async (req, email, password, done) => {
+    }
+));
+
+passport.use("login", new LocalStrategy(
+    { passReqToCallback: true, usernameField: "email" }, 
+    async(req, email, password, done)=>{
+        const user = await readByEmail(email);
+        if(!user){
+            const error = new Error('USER NOT FOUND');
+            error.statusCode= 401;
+            return done(error);
+        }
+        if(!user.verifiedUser){
+            const error = new Error('USER MUST VERIFY MAIL FIRST');
+            error.statusCode= 401;
+            return done(error);
+        }
+        const passwordsMatch = verifyHashUtil(password, user.password);
+        if(passwordsMatch){
+            req.token = createTokenUtil({user_id: user._id, role: user.role});
+            return done(null, user);
+        }
+        const error = new Error('INVALID CREDENTIALS');
+        error.statusCode= 401;
+        return done(error);
+
+    }
+));
+
+passport.use("isAdmin", new JwtStrategy(
+    {jwtFromRequest: ExtractJwt.fromExtractors([req=>req?.signedCookies?.token]), secretOrKey: SECRET_KEY},
+    (data, done)=>{
+        const userId = data.user_id;
+        if(data.role != "ADMIN"){
+            const error = new Error('UNAUTHORIZED');
+            error.statusCode = 403;
+            return done(error);
+        }
+        return done(null, userId);
+    }
+));
+
+
+passport.use("google", new GoogleStrategy(
+    { clientID: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET, passReqToCallback: true, callbackURL: `${API_BASE_URL}/api/sessions/google/callback`},
+    async (req, accessToken, refreshToken, profile, done)=>{
         try {
-            const user = await readByEmail(email);
-            if (!user) {
-                const error = new Error("Invalid password")
-                error.statusCode = 401
-                return done(error)
+            const { id, given_name, family_name } = profile;
+            let user = await readByEmail(id); 
+                if(!user){
+                user = await create({email: id, password: createHashUtil(id), firstName : given_name, lastName : family_name});
             }
-            const dbPassword = user.password
-            const verify = verifyHashUtil(password, dbPassword)
-            if (!verify) {
-                const error = new Error("Invalid password")
-                error.statusCode = 401
-                return done(error)
-            }
-            //req.session.role = one.role
-            //req.session.user_id = one._id
-            req.token = createTokenUtil({ role: user.role, user_id: user._id})
-            return done(null, user)
+            req.token = createTokenUtil({user_id: user._id, role: user.role});
+            return done(null, user);
+
         } catch (error) {
-            return done(error)
+            return done(error);
         }
     }
 ));
 
-passport.use("online", new JwtStrategy({
-      jwtFromRequest: ExtractJwt.fromExtractors([(req) => req?.cookies?.token]),
-      secretOrKey: process.env.SECRET_KEY,
-    }, async (data, done) => {
-      try {
-        const { user_id } = data;
-        const user = await readById(user_id);
-        const { isOnline } = user;
-        if (!isOnline) {
-          const info = { message: "user is offline", statusCode: 401 };
-          return done(null, false, info);
-        }
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
-);
 
-passport.use("current", new JwtStrategy({
-    jwtFromRequest: ExtractJwt.fromExtractors([(req) => req?.cookies?.token]),
-    secretOrKey: process.env.SECRET_KEY,
-  }, async (data, done) => {
-    try {
-      const { user_id } = data;
-      const user = await readById(user_id);
-      const { isOnline } = user;
-      if (!isOnline) {
-        const info = { message: "user is offline", statusCode: 401 };
-        return done(null, false, info);
-      }
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  }
-)
-);
-
-passport.use("signout", new JwtStrategy({
-    jwtFromRequest: ExtractJwt.fromExtractors([(req) => req?.cookies?.token]),
-    secretOrKey: process.env.SECRET_KEY,
-    }, async (data, done) => {
-      try {
-        const { user_id } = data;
-        await update(user_id, { isOnline: false });
-        return done(null, { user_id: null });
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
-);
-
-passport.use("google", new GoogleStrategy({
-      clientID: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-      passReqToCallback: true,
-      callbackURL: BASE_URL + "sessions/google/cb",
-    }, async (req, accessToken, refreshToken, profile, done) => {
-      try {
-        const { id, picture } = profile;
-        let user = await readByEmail(id);
-        if (!user) {
-        user = await create({
-        email: id,
-        photo: picture,
-        password: createHashUtil(id),
-        });
-        }
-        req.headers.token = createTokenUtil({
-        role: user.role,
-        user: user._id,
-        });
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
-);
-
-export default passport;
+export default passport

@@ -39,7 +39,14 @@ class Manager {
             throw error
         }
     }
-
+    readAllPaginated = async(query, opts)=>{
+        try {
+            const all = await this.model.paginate(query,opts)
+            return all;
+        } catch (error) {
+            throw error;
+        }
+    }
     update = async (id, data) => {
         try {
             const opt = { new: true }

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import config from '../../../config.js';
+import config from '../config.js';
 import mongoosePaginate from 'mongoose-paginate-v2'
 
 
@@ -11,7 +11,7 @@ const schema = new mongoose.Schema({
     products: [{
         product: { type: mongoose.Schema.Types.ObjectId, ref: config.PRODUCTS_COLLECTION, required: true },
         quantity: { type: Number, default: 1 },
-        _id: false
+        _id: true
     }],
     total: { type: Number, default: 0 },
 });
