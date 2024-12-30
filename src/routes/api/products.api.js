@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import passport from '../middlewares/passport.mid.js';
-import { readProductById, readAllProductsPaginated, createProduct, updateProduct, deleteProduct } from '../controllers/products.controller.js';
+import passport from '../../middlewares/passport.mid.js';
+import { readProductById, readAllProductsPaginated, createProduct, updateProduct, deleteProduct } from '../../controllers/products.controller.js';
 
 const router = Router();
 

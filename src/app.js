@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 import express from 'express';
 import config from './config.js';
-import envUtil from "./src/utils/env.util.js"
+import envUtil from "./utils/env.util.js"
 import mongoose from 'mongoose';
 import MongoStore from "connect-mongo"
 import cookieParser from 'cookie-parser'
@@ -14,10 +14,10 @@ import pathHandler from "./middlewares/pathHandler.mid.js"
 import errorHandler from "./middlewares/errorHandler.mid.js"
 import indexRouter from "./routes/index.router.js"
 import dbConnect from "./utils/dbConnect.util.js"
-import homeRouter from './routes/home.router.js';
+import homeRouter from './routes/api/home.api.js';
 import viewsRouter from './routes/api/views.api.js';
 import handlebars from 'express-handlebars'
-import argsUtil from "./src/utils/args.util.js";
+import argsUtil from "./utils/args.util.js";
 
 const {PORT, MONGO_REMOTE_URI, COOKIES_SECRET, MONGO_LOCAL_URI} = envUtil;
 

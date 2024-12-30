@@ -1,9 +1,9 @@
 import { Router } from "express";
-import passport from '../middlewares/passport.mid.js';
-import isOnline from "../middlewares/isOnlineVerifier.mid.js";
-import verifyCode from "../middlewares/usersVerifier.mid.js";
-import { register, login, isOnlineResponse, logoutResponse, isAdminResponse, google, verifyCodeResponse, sendTokenEmailResponse, confirmResetPasswordResponse} from "../controllers/sessions.controller.js";
-import { sendTokenEmail, confirmResetPassword } from "../middlewares/forgotPassword.mid.js";
+import passport from '../../middlewares/passport.mid.js';
+import isOnline from "../../middlewares/isOnlineVerifier.mid.js";
+import verifyCode from "../../middlewares/usersVerifier.mid.js";
+import { register, login, isOnlineResponse, logoutResponse, isAdminResponse, google, verifyCodeResponse, sendTokenEmailResponse, confirmResetPasswordResponse} from "../../controllers/sessions.controller.js";
+import { sendTokenEmail, confirmResetPassword } from "../../middlewares/forgotPassword.mid.js";
 
 
 const sessionsRouter = Router();

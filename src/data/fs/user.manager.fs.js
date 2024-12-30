@@ -2,7 +2,7 @@ import fs from "fs";
 
 class UsersManager {
   constructor() {
-    this.path = "./src/dao/fs/files/users.json";
+    this.path = "./src/data/fs/files/users.json";
     this.init();
   }
   init() {
